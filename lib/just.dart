@@ -1,0 +1,3 @@
+String test() {
+  return "hello";
+}

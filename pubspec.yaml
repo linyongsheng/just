@@ -1,0 +1,12 @@
+name: just
+description: One very lightweight state management library for Flutter
+version: 0.0.1
+homepage:
+
+environment:
+  sdk: '>=2.19.2 <3.0.0'
+  flutter: ">=2.5.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
