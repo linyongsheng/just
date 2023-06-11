@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:just/just.dart';
 
@@ -26,6 +29,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // viewModel (state holder) definition
     return ViewModelProvider(
       create: (context) => HomeViewModel(),
       child: _HomePage(),
@@ -45,18 +49,60 @@ class _HomePage extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // binding state : count
             DataBinding(
               () => Text(
-                'count: ${viewModel.counter.value}',
+                'count: ${viewModel.count.value}',
                 style: const TextStyle(fontSize: 20),
               ),
             ),
             const SizedBox(height: 10),
-            FilledButton(
-              onPressed: () {
-                viewModel.increment();
-              },
-              child: const Text("increment"),
+            // binding state : now
+            DataBinding(
+              () => Text(
+                'now: ${viewModel.now.value.millisecondsSinceEpoch}',
+                style: const TextStyle(fontSize: 20),
+              ),
+            ),
+            const SizedBox(height: 10),
+            // binding state : name and age
+            DataBinding(
+              () => Column(
+                children: [
+                  Text(
+                    'name: ${viewModel.name.value}',
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'age: ${viewModel.age.value}',
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Column(
+              children: [
+                FilledButton(
+                  onPressed: () {
+                    viewModel.increment();
+                  },
+                  child: const Text("increment"),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    viewModel.syncTime();
+                  },
+                  child: const Text("syncTime"),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    viewModel.syncUserInfo();
+                  },
+                  child: const Text("syncUserInfo"),
+                ),
+              ],
             ),
           ],
         ),
@@ -66,10 +112,36 @@ class _HomePage extends StatelessWidget {
 }
 
 class HomeViewModel extends ViewModel {
-  final counter = 0.obs;
+  // state definition
+  final count = 0.obs;
+  final now = Obs(DateTime.now());
+  final name = Obs<String?>(null);
+  final age = Obs<int>(10); // 10.obs or Obs(10);
 
+  // action1
   void increment() {
-    final newValue = counter.value + 1;
-    setValue(counter, newValue);
+    final newValue = count.value + 1;
+    // update state
+    setValue(count, newValue);
+  }
+
+  // action2
+  void syncTime() {
+    // update state
+    setValue(now, DateTime.now());
+  }
+
+  // action3
+  void syncUserInfo() {
+    var newAge = Random().nextInt(100);
+    setValue(age, newAge);
+    var wordPair = generateWordPairs().first;
+    setValue(name, wordPair.asCamelCase);
+  }
+
+  @override
+  void dispose() {
+    // do something when dispose
+    super.dispose();
   }
 }
