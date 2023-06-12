@@ -1,10 +1,10 @@
-# just
+# Just
 
 Just: a lightweight state management library for Flutter. Base on [Provider](https://pub.dev/packages/provider) and [Get](https://pub.dev/packages/get)。
 
 # Usage
 
-### Definition ViewModel
+### 1、Definition ViewModel
 
 ViewModel is state holder, contain `State` and `Action`。
 
@@ -46,7 +46,7 @@ class HomeViewModel extends ViewModel {
 
 ```
 
-### Integration ViewModel
+### 2、Integration ViewModel
 Provider viewModel by `ViewModelProvider`.
 ```dart
 class HomePage extends StatelessWidget {
@@ -63,7 +63,7 @@ class HomePage extends StatelessWidget {
 }
 ```
 
-### DataBinding and Action
+### 3、DataBinding and Action
 
 Get ViewModel like this:
 ```dart
