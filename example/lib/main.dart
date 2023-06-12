@@ -29,7 +29,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // viewModel (state holder) definition
+    // integration viewModel (state holder)
     return ViewModelProvider(
       create: (context) => HomeViewModel(),
       child: _HomePage(),
