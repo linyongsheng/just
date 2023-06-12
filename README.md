@@ -1,6 +1,6 @@
 # just
 
-Just: a lightweight state management library for Flutter. Base on [Provider](https://pub.dev/packages/provider) and [Get])(https://pub.dev/packages/get)。
+Just: a lightweight state management library for Flutter. Base on [Provider](https://pub.dev/packages/provider) and [Get](https://pub.dev/packages/get)。
 
 # Usage
 
