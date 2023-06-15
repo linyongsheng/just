@@ -19,8 +19,8 @@ class Obs<T> {
     return _value;
   }
 
-  void _setValue(T newValue) {
-    final accept = _acceptValue(newValue);
+  void _setValue(T newValue, bool force) {
+    final accept = force ? true : _acceptValue(newValue);
     if (!accept) {
       return;
     }
@@ -79,8 +79,8 @@ class Obs<T> {
 /// 状态本身不对外支持修改，只能通过持有者设置
 mixin ObservableHolder {
   @protected
-  void setValue<T>(Obs<T> obs, T value) {
-    obs._setValue(value);
+  void setValue<T>(Obs<T> obs, T value, {bool force = false}) {
+    obs._setValue(value, force);
   }
 }
 
