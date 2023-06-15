@@ -19,6 +19,8 @@ class Obs<T> {
     return _value;
   }
 
+  int get observerCount => _observers.length;
+
   void _setValue(T newValue, bool force) {
     final accept = force ? true : _acceptValue(newValue);
     if (!accept) {
@@ -61,7 +63,7 @@ class Obs<T> {
   /// 添加观察者
   Subscription<T> subscribe(Observer<T> observer) {
     _observers.add(observer);
-    return Subscription<T>._(this, observer);
+    return _Subscription<T>(this, observer);
   }
 
   /// 添加观察者
@@ -85,11 +87,16 @@ mixin ObservableHolder {
 }
 
 /// 订阅返回
-class Subscription<T> {
+abstract class Subscription<T> {
+  /// 取消订阅
+  void cancel();
+}
+
+class _Subscription<T> extends Subscription<T> {
   WeakReference<Obs<T>>? _observable;
   WeakReference<Observer<T>>? _observer;
 
-  Subscription._(Obs<T> observable, Observer<T> observer)
+  _Subscription(Obs<T> observable, Observer<T> observer)
       : _observable = WeakReference(observable),
         _observer = WeakReference(observer);
 
@@ -169,7 +176,7 @@ class _MultiObservable {
     }
     final res = obs._subscribe(observer);
     if (res) {
-      _subscriptions.add(Subscription._(obs, observer));
+      _subscriptions.add(_Subscription(obs, observer));
     }
   }
 
