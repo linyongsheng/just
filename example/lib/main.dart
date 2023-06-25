@@ -49,14 +49,6 @@ class _HomePage extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // binding state : count
-            DataBinding(
-              () => Text(
-                'count: ${viewModel.count.value}',
-                style: const TextStyle(fontSize: 20),
-              ),
-            ),
-            const SizedBox(height: 10),
             // binding state : now
             DataBinding(
               () => Text(
@@ -65,36 +57,23 @@ class _HomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            // binding state : name and age
-            DataBinding(
-              () => Column(
-                children: [
-                  Text(
-                    'name: ${viewModel.name.value}',
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'age: ${viewModel.age.value}',
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                ],
-              ),
-            ),
+            const Counter(),
+            const SizedBox(height: 10),
+            const UserInfoWidget(),
             const SizedBox(height: 10),
             Column(
               children: [
                 FilledButton(
                   onPressed: () {
-                    viewModel.increment();
-                  },
-                  child: const Text("increment"),
-                ),
-                FilledButton(
-                  onPressed: () {
                     viewModel.syncTime();
                   },
                   child: const Text("syncTime"),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    viewModel.increment();
+                  },
+                  child: const Text("increment"),
                 ),
                 FilledButton(
                   onPressed: () {
@@ -107,6 +86,48 @@ class _HomePage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class Counter extends StatefulWidget {
+  const Counter({super.key});
+
+  @override
+  State<Counter> createState() => _CounterState();
+}
+
+class _CounterState extends DataBindingState<Counter> {
+  @override
+  Widget buildWithData(BuildContext context) {
+    // binding state : count
+    final viewModel = context.viewModel<HomeViewModel>();
+    return Text(
+      'count: ${viewModel.count.value}',
+      style: const TextStyle(fontSize: 20),
+    );
+  }
+}
+
+class UserInfoWidget extends DataBindingWidget {
+  const UserInfoWidget({super.key});
+
+  @override
+  Widget buildWithData(BuildContext context) {
+    // binding state : name and age
+    final viewModel = context.viewModel<HomeViewModel>();
+    return Column(
+      children: [
+        Text(
+          'name: ${viewModel.name.value}',
+          style: const TextStyle(fontSize: 20),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          'age: ${viewModel.age.value}',
+          style: const TextStyle(fontSize: 20),
+        ),
+      ],
     );
   }
 }

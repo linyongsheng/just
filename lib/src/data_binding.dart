@@ -195,3 +195,25 @@ class _MultiObservable {
 extension ObsExtensions<T> on T {
   Obs<T> get obs => Obs<T>(this);
 }
+
+abstract class DataBindingWidget extends StatelessWidget {
+  const DataBindingWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DataBinding(() => buildWithData(context));
+  }
+
+  @protected
+  Widget buildWithData(BuildContext context);
+}
+
+abstract class DataBindingState<T extends StatefulWidget> extends State<T> {
+  @override
+  Widget build(BuildContext context) {
+    return DataBinding(() => buildWithData(context));
+  }
+
+  @protected
+  Widget buildWithData(BuildContext context);
+}
