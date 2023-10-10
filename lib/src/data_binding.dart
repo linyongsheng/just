@@ -31,15 +31,17 @@ class Obs<T> {
     if (length == 0) {
       return;
     }
-    if (length == 1) {
-      _observers.first.call(_value);
-      return;
-    }
-    // 浅拷贝副本，避免遍历过程中_observers增减
-    final observers = _observers.toList();
-    for (var observer in observers) {
-      observer.call(_value);
-    }
+    Future.delayed(Duration.zero, (){
+      if (length == 1) {
+        _observers.first.call(_value);
+        return;
+      }
+      // 浅拷贝副本，避免遍历过程中_observers增减
+      final observers = _observers.toList();
+      for (var observer in observers) {
+        observer.call(_value);
+      }
+    });
   }
 
   /// 是否接受新值，目前规则如下：
@@ -82,9 +84,7 @@ class Obs<T> {
 mixin ObservableHolder {
   @protected
   void setValue<T>(Obs<T> obs, T value, {bool force = false}) {
-    Future.delayed(Duration.zero, (){
-      obs._setValue(value, force);
-    });
+    obs._setValue(value, force);
   }
 }
 
