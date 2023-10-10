@@ -82,7 +82,9 @@ class Obs<T> {
 mixin ObservableHolder {
   @protected
   void setValue<T>(Obs<T> obs, T value, {bool force = false}) {
-    obs._setValue(value, force);
+    Future.delayed(Duration.zero, (){
+      obs._setValue(value, force);
+    });
   }
 }
 
