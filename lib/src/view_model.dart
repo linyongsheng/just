@@ -3,14 +3,8 @@ import 'package:provider/provider.dart';
 
 import 'data_binding.dart';
 
-abstract class Disposable {
-  void dispose();
-}
-
 // TODO 管理页面生命周期
-class ViewModel extends Disposable with ObservableHolder {
-  @override
-  @mustCallSuper
+class ViewModel with ObservableHolder {
   void dispose() {}
 }
 
