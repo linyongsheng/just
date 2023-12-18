@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 typedef WidgetCallback = Widget Function();
 
+typedef ShouldRebuild = bool Function();
+
 typedef Observer<T> = void Function(T value);
 
 /// 一种可观察的（observable）状态封装
@@ -31,7 +33,7 @@ class Obs<T> {
     if (length == 0) {
       return;
     }
-    Future.delayed(Duration.zero, (){
+    Future.delayed(Duration.zero, () {
       if (length == 1) {
         _observers.first.call(_value);
         return;
@@ -119,8 +121,9 @@ class _Subscription<T> extends Subscription<T> {
 /// 对应的状态 xx 发生变化时，将触发 callback 再次调用
 class DataBinding extends StatefulWidget {
   final WidgetCallback callback;
+  final ShouldRebuild? shouldRebuild;
 
-  const DataBinding(this.callback, {super.key});
+  const DataBinding(this.callback, {super.key, this.shouldRebuild});
 
   @override
   State<DataBinding> createState() => _DataBindingState();
@@ -135,7 +138,10 @@ class _DataBindingState extends State<DataBinding> {
     super.initState();
     _observable.subscribe((value) {
       if (mounted) {
-        setState(() {});
+        final shouldRebuild = widget.shouldRebuild?.call() ?? true;
+        if (shouldRebuild) {
+          setState(() {});
+        }
       }
     });
   }
@@ -203,19 +209,39 @@ abstract class DataBindingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DataBinding(() => buildWithData(context));
+    return DataBinding(
+      () => buildWithData(context),
+      shouldRebuild: () {
+        return shouldRebuild(context);
+      },
+    );
   }
 
   @protected
   Widget buildWithData(BuildContext context);
+
+  @protected
+  bool shouldRebuild(BuildContext context) {
+    return true;
+  }
 }
 
 abstract class DataBindingState<T extends StatefulWidget> extends State<T> {
   @override
   Widget build(BuildContext context) {
-    return DataBinding(() => buildWithData(context));
+    return DataBinding(
+      () => buildWithData(context),
+      shouldRebuild: () {
+        return shouldRebuild(context);
+      },
+    );
   }
 
   @protected
   Widget buildWithData(BuildContext context);
+
+  @protected
+  bool shouldRebuild(BuildContext context) {
+    return true;
+  }
 }
