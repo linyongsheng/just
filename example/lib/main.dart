@@ -107,6 +107,12 @@ class _CounterState extends DataBindingState<Counter> {
       style: const TextStyle(fontSize: 20),
     );
   }
+
+  @override
+  bool shouldRebuild(BuildContext context) {
+    final viewModel = context.viewModel<HomeViewModel>();
+    return viewModel.count.value < 10;
+  }
 }
 
 class UserInfoWidget extends DataBindingWidget {
