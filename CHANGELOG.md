@@ -1,3 +1,3 @@
-## 0.0.1
+## 1.0.10
 
-* TODO: Describe initial release.
+* Add DisposableHolder. It provides a mechanism to extend its functionality through the setTag and getTag methods.
