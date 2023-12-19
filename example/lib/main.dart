@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:just/just.dart';
+import 'package:just_example/event_bus.dart';
+import 'package:just_example/event_bus_ex.dart';
 
 void main() {
   runApp(const MyApp());
@@ -81,6 +83,25 @@ class _HomePage extends StatelessWidget {
                   },
                   child: const Text("syncUserInfo"),
                 ),
+                FilledButton(
+                  onPressed: () {
+                    EventBus.fire(ThisIsEvent());
+                  },
+                  child: const Text("fire event"),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return const HomePage();
+                        },
+                      ),
+                    );
+                  },
+                  child: const Text("new page"),
+                ),
               ],
             ),
           ],
@@ -145,6 +166,13 @@ class HomeViewModel extends ViewModel {
   final name = Obs<String?>(null);
   final age = Obs<int>(10); // 10.obs or Obs(10);
 
+  HomeViewModel() {
+    /// this [eventbus] come from EventbusEx
+    eventbus.on<ThisIsEvent>((event) {
+      print("receive a event ${DateTime.now()}");
+    });
+  }
+
   // action1
   void increment() {
     final newValue = count.value + 1;
@@ -172,3 +200,5 @@ class HomeViewModel extends ViewModel {
     super.dispose();
   }
 }
+
+class ThisIsEvent {}
