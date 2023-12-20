@@ -5,3 +5,7 @@
 ## 1.0.11
 
 * Add DisposableHolderState for State
+
+## 1.0.12
+
+* Remove AbstractDisposableHolder. 

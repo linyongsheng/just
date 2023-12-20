@@ -4,13 +4,7 @@ abstract class Disposable {
   void dispose();
 }
 
-abstract class AbstractDisposableHolder implements Disposable {
-  T setTagIfAbsent<T>(String key, T newValue);
-
-  T? getTag<T>(String key);
-}
-
-class DisposableHolder implements AbstractDisposableHolder {
+class DisposableHolder implements Disposable {
   final _bagOfTag = <String, dynamic>{};
   var _disposed = false;
 
@@ -51,7 +45,7 @@ class DisposableHolder implements AbstractDisposableHolder {
   }
 }
 
-mixin DisposableHolderState<T extends StatefulWidget> on State<T> implements AbstractDisposableHolder {
+mixin DisposableHolderState<T extends StatefulWidget> on State<T> implements DisposableHolder {
   final _holder = DisposableHolder();
 
   @override

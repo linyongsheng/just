@@ -1,6 +1,6 @@
 name: just
 description: A very lightweight state management library.
-version: 1.0.11
+version: 1.0.12
 repository: https://github.com/linyongsheng/just
 homepage:
 
