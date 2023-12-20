@@ -8,4 +8,8 @@
 
 ## 1.0.12
 
-* Remove AbstractDisposableHolder. 
+* Remove AbstractDisposableHolder.
+
+## 1.0.13
+* Add ObsGroup for cancel batch.
+

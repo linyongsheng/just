@@ -199,6 +199,26 @@ class _MultiObservable {
   }
 }
 
+/// ObsGroup通过其[subscribe]方法，收集[Subscription],可实现批量取消
+class ObsGroup {
+  final _subscriptions = <Subscription>[];
+
+  /// 定义指定类型T的事件
+  Subscription<T> subscribe<T>(Obs<T> obs, Observer<T> observer) {
+    final sub = obs.subscribe(observer);
+    _subscriptions.add(sub);
+    return sub;
+  }
+
+  /// 取消所有事件监听
+  void cancel() {
+    for (var sub in _subscriptions) {
+      sub.cancel();
+    }
+    _subscriptions.clear();
+  }
+}
+
 /// 扩展任何数据类型 后缀快捷写法 .obs。转换为Obs<T>类型
 extension ObsExtensions<T> on T {
   Obs<T> get obs => Obs<T>(this);

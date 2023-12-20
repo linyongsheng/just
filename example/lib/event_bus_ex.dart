@@ -3,7 +3,7 @@ import 'package:just/just.dart';
 
 import 'event_bus.dart';
 
-const String _eventBusKey = "just.viewModel.key.eventbus";
+const String _eventBusKey = "just.key.eventbus";
 
 /// this is example show how to extent ViewModel by tag
 extension EventbusEx on DisposableHolder {
