@@ -10,13 +10,13 @@ extension EventbusEx on AbstractDisposableHolder {
   EventSubscriber get eventbus {
     _DisposableEventSubscriber? subscriber = getTag(_eventBusKey);
     if (subscriber != null) {
-      return subscriber;
+      return subscriber.subscriber;
     }
-    return setTagIfAbsent(_eventBusKey, _DisposableEventSubscriber(EventBus.subscriber()));
+    return setTagIfAbsent(_eventBusKey, _DisposableEventSubscriber(EventBus.subscriber())).subscriber;
   }
 }
 
-class _DisposableEventSubscriber implements Disposable, EventSubscriber {
+class _DisposableEventSubscriber implements Disposable {
   final EventSubscriber subscriber;
 
   _DisposableEventSubscriber(this.subscriber);
@@ -24,15 +24,5 @@ class _DisposableEventSubscriber implements Disposable, EventSubscriber {
   @override
   void dispose() {
     subscriber.cancel();
-  }
-
-  @override
-  void cancel() {
-    subscriber.cancel();
-  }
-
-  @override
-  void on<T>(void Function(T event)? eventHandler) {
-    subscriber.on(eventHandler);
   }
 }
