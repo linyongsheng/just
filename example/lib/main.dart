@@ -118,7 +118,15 @@ class Counter extends StatefulWidget {
   State<Counter> createState() => _CounterState();
 }
 
-class _CounterState extends DataBindingState<Counter> {
+class _CounterState extends DataBindingState<Counter> with DisposableHolderState {
+  @override
+  void initState() {
+    super.initState();
+    eventbus.on<ThisIsEvent>((event) {
+      print("CounterState receive a event ${DateTime.now()}");
+    });
+  }
+
   @override
   Widget buildWithData(BuildContext context) {
     // binding state : count
@@ -169,7 +177,7 @@ class HomeViewModel extends ViewModel {
   HomeViewModel() {
     /// this [eventbus] come from EventbusEx
     eventbus.on<ThisIsEvent>((event) {
-      print("receive a event ${DateTime.now()}");
+      print("HomeViewModel receive a event ${DateTime.now()}");
     });
   }
 
@@ -192,12 +200,6 @@ class HomeViewModel extends ViewModel {
     setValue(age, newAge);
     var wordPair = generateWordPairs().first;
     setValue(name, wordPair.asCamelCase);
-  }
-
-  @override
-  void dispose() {
-    // do something when dispose
-    super.dispose();
   }
 }
 

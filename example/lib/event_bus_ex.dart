@@ -6,7 +6,7 @@ import 'event_bus.dart';
 const String _eventBusKey = "just.viewModel.key.eventbus";
 
 /// this is example show how to extent ViewModel by tag
-extension EventbusEx on DisposableHolder {
+extension EventbusEx on AbstractDisposableHolder {
   EventSubscriber get eventbus {
     _DisposableEventSubscriber? subscriber = getTag(_eventBusKey);
     if (subscriber != null) {

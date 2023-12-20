@@ -4,7 +4,13 @@ abstract class Disposable {
   void dispose();
 }
 
-mixin DisposableHolder implements Disposable {
+abstract class AbstractDisposableHolder implements Disposable {
+  T setTagIfAbsent<T>(String key, T newValue);
+
+  T? getTag<T>(String key);
+}
+
+class DisposableHolder implements AbstractDisposableHolder {
   final _bagOfTag = <String, dynamic>{};
   var _disposed = false;
 
@@ -42,5 +48,25 @@ mixin DisposableHolder implements Disposable {
       }
     });
     // _bagOfTag.clear();
+  }
+}
+
+mixin DisposableHolderState<T extends StatefulWidget> on State<T> implements AbstractDisposableHolder {
+  final _holder = DisposableHolder();
+
+  @override
+  T setTagIfAbsent<T>(String key, T newValue) {
+    return _holder.setTagIfAbsent(key, newValue);
+  }
+
+  @override
+  T? getTag<T>(String key) {
+    return _holder.getTag(key);
+  }
+
+  @override
+  void dispose() {
+    _holder.dispose();
+    super.dispose();
   }
 }
