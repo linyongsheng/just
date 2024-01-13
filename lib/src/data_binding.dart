@@ -66,19 +66,37 @@ class Obs<T> {
 
   /// 添加观察者
   Subscription<T> subscribe(Observer<T> observer) {
-    _observers.add(observer);
+    final res = _observers.add(observer);
+    if (res && observerCount == 1) {
+      onActive();
+    }
     return _Subscription<T>(this, observer);
   }
 
   /// 添加观察者
   bool _subscribe(Observer<T> observer) {
-    return _observers.add(observer);
+    final res = _observers.add(observer);
+    if (res && observerCount == 1) {
+      onActive();
+    }
+    return res;
   }
 
   /// 移除观察者
   void _unsubscribe(Observer<T> observer) {
-    _observers.remove(observer);
+    final res = _observers.remove(observer);
+    if (res && observerCount == 0) {
+      onInactive();
+    }
   }
+
+  /// 观察者个数从0到1
+  @protected
+  void onActive() {}
+
+  /// 观察者个数从1到0
+  @protected
+  void onInactive() {}
 }
 
 /// 状态持有者
