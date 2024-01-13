@@ -13,3 +13,6 @@
 ## 1.0.13
 * Add ObsGroup for cancel batch.
 
+## 1.0.14
+* Obs add onActive and onInactive method
+
