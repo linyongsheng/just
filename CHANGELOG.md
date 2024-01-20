@@ -16,3 +16,6 @@
 ## 1.0.14
 * Obs add onActive and onInactive method
 
+## 1.0.15
+* make Obs setValue method protected
+

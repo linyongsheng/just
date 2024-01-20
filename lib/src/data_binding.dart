@@ -23,7 +23,8 @@ class Obs<T> {
 
   int get observerCount => _observers.length;
 
-  void _setValue(T newValue, bool force) {
+  @protected
+  void setValue(T newValue, bool force) {
     final accept = force ? true : _acceptValue(newValue);
     if (!accept) {
       return;
@@ -104,7 +105,7 @@ class Obs<T> {
 mixin ObservableHolder {
   @protected
   void setValue<T>(Obs<T> obs, T value, {bool force = false}) {
-    obs._setValue(value, force);
+    obs.setValue(value, force);
   }
 }
 
