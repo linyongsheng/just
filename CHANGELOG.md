@@ -19,3 +19,6 @@
 ## 1.0.15
 * make Obs setValue method protected
 
+## 1.0.16
+* bug fix: throw exception when hot reload
+

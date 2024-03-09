@@ -35,7 +35,7 @@ class Obs<T> {
       return;
     }
     Future.delayed(Duration.zero, () {
-      if (length == 1) {
+      if (_observers.length == 1) {
         _observers.first.call(_value);
         return;
       }
