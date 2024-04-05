@@ -74,6 +74,15 @@ class Obs<T> {
     return _Subscription<T>(this, observer);
   }
 
+  /// 添加观察者，并且会立马回调当前值
+  Subscription<T> subscribeSticky(Observer<T> observer) {
+    final sub = subscribe(observer);
+    Future.delayed(Duration.zero, () {
+      observer.call(_value);
+    });
+    return sub;
+  }
+
   /// 添加观察者
   bool _subscribe(Observer<T> observer) {
     final res = _observers.add(observer);

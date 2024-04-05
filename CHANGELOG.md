@@ -22,3 +22,6 @@
 ## 1.0.16
 * bug fix: throw exception when hot reload
 
+## 1.0.17
+* Obs add `subscribeSticky` method. It will callback last value soon.
+
