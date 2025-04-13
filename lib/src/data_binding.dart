@@ -238,6 +238,13 @@ class ObsGroup {
     return sub;
   }
 
+  /// 定义指定类型T的事件
+  Subscription<T> subscribeSticky<T>(Obs<T> obs, Observer<T> observer) {
+    final sub = obs.subscribeSticky(observer);
+    _subscriptions.add(sub);
+    return sub;
+  }
+
   /// 取消所有事件监听
   void cancel() {
     for (var sub in _subscriptions) {

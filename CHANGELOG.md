@@ -25,3 +25,8 @@
 ## 1.0.17
 * Obs add `subscribeSticky` method. It will callback last value soon.
 
+## 1.0.18
+* Obs can update value immediately.(don`t use)
+
+## 1.0.19
+* ObsGroup add `subscribeSticky` method.
