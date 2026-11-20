@@ -3,6 +3,35 @@
 Just: a lightweight state management library for Flutter. Base on [Provider](https://pub.dev/packages/provider)
 # Usage
 
+### Observing a value synchronously
+
+Use `subscribeSync` when another object needs the new value before a write
+returns. Each call creates a subscription that can be cancelled independently.
+
+```dart
+final group = ObsGroup();
+group.subscribeSync(viewModel.count, (value) => preview.count = value);
+preview.count = viewModel.count.value; // Initialize from the active source.
+
+viewModel.increment(); // preview.count already reflects this write on return.
+group.cancel();
+```
+
+`subscribeSync` observes future writes. The first synchronous or deferred
+subscriber starts the source through `onActive()`. The last cancellation calls
+`onInactive()`. If activation writes a value, a synchronous listener can run
+before subscription returns. Cancelling its group at that point silences the
+listener immediately and releases the subscription as soon as activation returns.
+
+If a synchronous listener writes a newer value to the same source, remaining
+listeners receive the newer value. A listener cancelled during dispatch is
+skipped. Listeners added during dispatch start with the next write. Exceptions
+thrown by synchronous listeners are reported through `FlutterError.reportError`.
+
+`subscribe`, `subscribeSticky` and `DataBinding` deliver changes on a later
+event-loop turn. An accepted write with deferred listeners schedules a
+notification. At delivery, it uses the current listeners and the current value.
+
 ### 1、Definition ViewModel
 
 ViewModel is state holder, contain `State` and `Action`。

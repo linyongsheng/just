@@ -10,6 +10,9 @@ typedef Observer<T> = void Function(T value);
 class Obs<T> {
   late T _value;
   final _observers = <Observer<T>>{};
+  Map<_Subscription<T>, Observer<T>>? _syncObservers;
+  int _syncRevision = 0;
+  bool _changingActivity = false;
 
   Obs(T initValue) : _value = initValue;
 
@@ -21,7 +24,7 @@ class Obs<T> {
     return _value;
   }
 
-  int get observerCount => _observers.length;
+  int get observerCount => _observers.length + (_syncObservers?.length ?? 0);
 
   @protected
   void setValue(T newValue, bool force) {
@@ -30,21 +33,49 @@ class Obs<T> {
       return;
     }
     _value = newValue;
-    final length = _observers.length;
-    if (length == 0) {
+    if (_observers.isNotEmpty) {
+      Future.delayed(Duration.zero, _notifyObservers);
+    }
+    final syncObservers = _syncObservers;
+    if (syncObservers != null) {
+      _notifySync(syncObservers, newValue);
+    }
+  }
+
+  void _notifyObservers() {
+    if (_observers.length == 1) {
+      _observers.first(_value);
       return;
     }
-    Future.delayed(Duration.zero, () {
-      if (_observers.length == 1) {
-        _observers.first.call(_value);
-        return;
+    for (final observer in _observers.toList()) {
+      observer(_value);
+    }
+  }
+
+  void _notifySync(Map<_Subscription<T>, Observer<T>> observers, T value) {
+    final revision = ++_syncRevision;
+    // 回调间接读取的状态不属于触发此次写入的 DataBinding。
+    final scope = _DataBindingState.scope;
+    _DataBindingState.scope = null;
+    try {
+      for (final subscription in observers.keys.toList()) {
+        // 重入写入已经派发了新值，停止投递本轮旧值。
+        if (revision != _syncRevision) break;
+        try {
+          observers[subscription]?.call(value);
+        } catch (exception, stack) {
+          FlutterError.reportError(FlutterErrorDetails(
+            exception: exception,
+            stack: stack,
+            library: 'just',
+            context:
+                ErrorDescription('while notifying a synchronous Obs listener'),
+          ));
+        }
       }
-      // 浅拷贝副本，避免遍历过程中_observers增减
-      final observers = _observers.toList();
-      for (var observer in observers) {
-        observer.call(_value);
-      }
-    });
+    } finally {
+      _DataBindingState.scope = scope;
+    }
   }
 
   /// 是否接受新值，目前规则如下：
@@ -59,7 +90,8 @@ class Obs<T> {
     if (_value == null || newValue == null) {
       return true;
     }
-    if ((_value is String || _value is bool || _value is num) && (_value == newValue)) {
+    if ((_value is String || _value is bool || _value is num) &&
+        (_value == newValue)) {
       return false;
     }
     return true;
@@ -67,14 +99,20 @@ class Obs<T> {
 
   /// 添加观察者
   Subscription<T> subscribe(Observer<T> observer) {
-    final res = _observers.add(observer);
-    if (res && observerCount == 1) {
-      onActive();
-    }
-    return _Subscription<T>(this, observer);
+    return _subscribeDeferred(observer) ??
+        _Subscription(this, deferred: observer);
   }
 
-  /// 添加观察者，并且会立马回调当前值
+  /// 同步监听后续写入。首次订阅触发的 [onActive] 可能在本方法返回前写入。
+  /// 每次调用都创建可独立取消的订阅。
+  Subscription<T> subscribeSync(Observer<T> observer) {
+    final subscription = _Subscription(this);
+    final observers = _syncObservers ??= {};
+    observers[subscription] = observer;
+    return _activate(subscription);
+  }
+
+  /// 添加观察者，并在后续事件循环回调当前值。
   Subscription<T> subscribeSticky(Observer<T> observer) {
     final sub = subscribe(observer);
     Future.delayed(Duration.zero, () {
@@ -84,19 +122,37 @@ class Obs<T> {
   }
 
   /// 添加观察者
-  bool _subscribe(Observer<T> observer) {
-    final res = _observers.add(observer);
-    if (res && observerCount == 1) {
-      onActive();
-    }
-    return res;
+  _Subscription<T>? _subscribeDeferred(Observer<T> observer) {
+    if (!_observers.add(observer)) return null;
+    return _activate(_Subscription(this, deferred: observer));
   }
 
-  /// 移除观察者
-  void _unsubscribe(Observer<T> observer) {
-    final res = _observers.remove(observer);
-    if (res && observerCount == 0) {
-      onInactive();
+  _Subscription<T> _activate(_Subscription<T> subscription) {
+    if (observerCount == 1) {
+      try {
+        _notifyActivityChange();
+      } catch (_) {
+        subscription.cancel();
+        rethrow;
+      }
+    }
+    return subscription;
+  }
+
+  void _notifyActivityChange() {
+    if (_changingActivity) return;
+    final active = observerCount > 0;
+    _changingActivity = true;
+    try {
+      if (active) {
+        onActive();
+      } else {
+        onInactive();
+      }
+    } finally {
+      _changingActivity = false;
+      // 先完成当前启停，再处理钩子执行期间发生的订阅变化。
+      if (active != (observerCount > 0)) _notifyActivityChange();
     }
   }
 
@@ -126,21 +182,27 @@ abstract class Subscription<T> {
 
 class _Subscription<T> extends Subscription<T> {
   WeakReference<Obs<T>>? _observable;
-  WeakReference<Observer<T>>? _observer;
+  final WeakReference<Observer<T>>? _deferredObserver;
 
-  _Subscription(Obs<T> observable, Observer<T> observer)
+  _Subscription(Obs<T> observable, {Observer<T>? deferred})
       : _observable = WeakReference(observable),
-        _observer = WeakReference(observer);
+        _deferredObserver = deferred == null ? null : WeakReference(deferred);
 
   /// 取消订阅
+  @override
   void cancel() {
     final observable = _observable?.target;
-    final observer = _observer?.target;
-    if (observable != null && observer != null) {
-      observable._unsubscribe(observer);
-    }
     _observable = null;
-    _observer = null;
+    if (observable == null) return;
+    final deferred = _deferredObserver;
+    if (deferred == null) {
+      final observers = observable._syncObservers!;
+      observers.remove(this);
+      if (observers.isEmpty) observable._syncObservers = null;
+    } else if (!observable._observers.remove(deferred.target)) {
+      return;
+    }
+    if (observable.observerCount == 0) observable._notifyActivityChange();
   }
 }
 
@@ -210,10 +272,8 @@ class _MultiObservable {
     if (observer == null) {
       return;
     }
-    final res = obs._subscribe(observer);
-    if (res) {
-      _subscriptions.add(_Subscription(obs, observer));
-    }
+    final sub = obs._subscribeDeferred(observer);
+    if (sub != null) _subscriptions.add(sub);
   }
 
   void cancel(bool dispose) {
@@ -229,29 +289,51 @@ class _MultiObservable {
 
 /// ObsGroup通过其[subscribe]方法，收集[Subscription],可实现批量取消
 class ObsGroup {
-  final _subscriptions = <Subscription>[];
+  final _subscriptions = <Subscription>{};
+  var _batch = _GroupBatch();
 
   /// 定义指定类型T的事件
   Subscription<T> subscribe<T>(Obs<T> obs, Observer<T> observer) {
-    final sub = obs.subscribe(observer);
-    _subscriptions.add(sub);
-    return sub;
+    final batch = _batch;
+    return _add(batch, obs.subscribe(observer));
+  }
+
+  /// 同步监听 [obs] 的后续写入，通过 [cancel] 可统一取消。
+  Subscription<T> subscribeSync<T>(Obs<T> obs, Observer<T> observer) {
+    final batch = _batch;
+    return _add(batch, obs.subscribeSync((value) {
+      if (!batch.cancelled) observer(value);
+    }));
   }
 
   /// 定义指定类型T的事件
   Subscription<T> subscribeSticky<T>(Obs<T> obs, Observer<T> observer) {
-    final sub = obs.subscribeSticky(observer);
-    _subscriptions.add(sub);
+    final batch = _batch;
+    return _add(batch, obs.subscribeSticky(observer));
+  }
+
+  Subscription<T> _add<T>(_GroupBatch batch, Subscription<T> sub) {
+    // onActive 可能在订阅方法返回句柄之前取消本组。
+    if (batch.cancelled) {
+      sub.cancel();
+    } else {
+      _subscriptions.add(sub);
+    }
     return sub;
   }
 
   /// 取消所有事件监听
   void cancel() {
-    for (var sub in _subscriptions) {
-      sub.cancel();
+    _batch.cancelled = true;
+    _batch = _GroupBatch();
+    for (final sub in _subscriptions.toList()) {
+      if (_subscriptions.remove(sub)) sub.cancel();
     }
-    _subscriptions.clear();
   }
+}
+
+class _GroupBatch {
+  bool cancelled = false;
 }
 
 /// 扩展任何数据类型 后缀快捷写法 .obs。转换为Obs<T>类型

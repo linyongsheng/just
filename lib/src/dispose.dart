@@ -33,6 +33,7 @@ class DisposableHolder implements Disposable {
     return _bagOfTag[key] as T?;
   }
 
+  @override
   @mustCallSuper
   void dispose() {
     _disposed = true;
@@ -45,7 +46,8 @@ class DisposableHolder implements Disposable {
   }
 }
 
-mixin DisposableHolderState<T extends StatefulWidget> on State<T> implements DisposableHolder {
+mixin DisposableHolderState<W extends StatefulWidget> on State<W>
+    implements DisposableHolder {
   final _holder = DisposableHolder();
 
   @override

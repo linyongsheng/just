@@ -30,3 +30,7 @@
 
 ## 1.0.19
 * ObsGroup add `subscribeSticky` method.
+
+## 1.1.0
+
+* Add `Obs.subscribeSync` and `ObsGroup.subscribeSync` for callbacks during a write. Synchronous listeners share the source's `onActive` and `onInactive` lifecycle with deferred listeners.
